@@ -16,7 +16,8 @@ namespace DevCourseHub.Application.Mappings
             CreateMap<Enrollment, EnrollmentDto>()
                 .ForMember(dest => dest.CourseTitle, opt => opt.MapFrom(src => src.Course.Title))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Course.Category))
-                .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Course.Level.ToString()));
+                .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Course.Level.ToString()))
+                .ForMember(dest => dest.EnrollAt, opt => opt.MapFrom(src => src.EnrolledAt));
 
             CreateMap<Enrollment, MyCourseDto>()
                 .ForMember(dest => dest.CourseId, opt => opt.MapFrom(src => src.CourseId))

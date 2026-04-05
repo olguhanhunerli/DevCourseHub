@@ -1,4 +1,6 @@
-﻿using DevCourseHub.Application.Interfaces;
+﻿using DevCourseHub.Application.DTOs.Course;
+using DevCourseHub.Application.DTOs.Enrollment;
+using DevCourseHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,9 +26,9 @@ namespace DevCourseHub.API.Controllers
         }
         [HttpGet("enrollments/my-courses")]
         [Authorize]
-        public async Task<IActionResult> GetMyCourses()
+        public async Task<IActionResult> GetMyCourses([FromQuery] GetEnrollmentQueryDto query)
         {
-            var enrollments = await _enrollmentService.GetMyCourseAsync();
+            var enrollments = await _enrollmentService.GetMyCourseAsync(query);
             return Ok(enrollments);
         }
     }

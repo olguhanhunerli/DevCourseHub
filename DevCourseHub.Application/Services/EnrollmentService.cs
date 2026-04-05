@@ -1,7 +1,11 @@
 ﻿using AutoMapper;
+using DevCourseHub.Application.DTOs.Common;
+using DevCourseHub.Application.DTOs.Course;
 using DevCourseHub.Application.DTOs.Enrollment;
 using DevCourseHub.Application.Interfaces;
 using DevCourseHub.Domain.Entities;
+using DevCourseHub.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,16 +65,66 @@ namespace DevCourseHub.Application.Services
             return _mapper.Map<EnrollmentDto>(newEnrollment);
         }
 
-        public async Task<IEnumerable<EnrollmentDto>> GetMyCourseAsync()
+       
+        public async Task<PagedResultDto<EnrollmentDto>> GetMyCourseAsync(GetEnrollmentQueryDto query)
         {
             var currentUserId = _currentUserService.UserId;
             if (currentUserId is null)
+                throw new UnauthorizedAccessException("Kullanıcı bilgisi bulunamadı.");
+
+            var enrollmentQuery = _unitOfWork.Enrollments
+                .GetUserEnrollmentAsync(currentUserId.Value);
+
+            return await ApplyPaginationAsync(enrollmentQuery, query);
+        }
+
+        private async Task<PagedResultDto<EnrollmentDto>> ApplyPaginationAsync(
+            IQueryable<Domain.Entities.Enrollment> enrollmentQuery,
+            GetEnrollmentQueryDto query)
+        {
+            if (!string.IsNullOrWhiteSpace(query.Search))
             {
-                throw new Exception("Kullanıcı doğrulanamadı.");
+                var search = query.Search.Trim().ToLower();
+                enrollmentQuery = enrollmentQuery.Where(x =>
+                    x.Course.Title.ToLower().Contains(search));
             }
 
-            var enrollments = await _unitOfWork.Enrollments.GetUserEnrollmentAsync(currentUserId.Value);
-            return _mapper.Map<IEnumerable<EnrollmentDto>>(enrollments);
+            if (!string.IsNullOrWhiteSpace(query.Category))
+            {
+                var category = query.Category.Trim().ToLower();
+                enrollmentQuery = enrollmentQuery.Where(x =>
+                    x.Course.Category.ToLower() == category);
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Level) &&
+                Enum.TryParse<CourseLevel>(query.Level, true, out var parsedLevel))
+            {
+                enrollmentQuery = enrollmentQuery.Where(x => x.Course.Level == parsedLevel);
+            }
+
+            var pageNumber = query.PageNumber < 1 ? 1 : query.PageNumber;
+            var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+            if (pageSize > 50) pageSize = 50;
+
+            var totalCount = await enrollmentQuery.CountAsync();
+
+            var enrollments = await enrollmentQuery
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var items = _mapper.Map<List<EnrollmentDto>>(enrollments);
+
+            return new PagedResultDto<EnrollmentDto>
+            {
+                Items = items,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
         }
+
+      
     }
+
 }

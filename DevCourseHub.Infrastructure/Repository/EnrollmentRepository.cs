@@ -15,12 +15,12 @@ namespace DevCourseHub.Infrastructure.Repository
         public EnrollmentRepository(AppDbContext context) : base(context)
         {
         }
-        public async Task<IEnumerable<Enrollment>> GetUserEnrollmentAsync(Guid userId)
+        public IQueryable<Enrollment> GetUserEnrollmentAsync(Guid userId)
         {
-            return await _context.Enrollments
+            return _context.Enrollments
                 .Include(e => e.Course)
                 .Where(e => e.UserId == userId)
-                .ToListAsync();
+                .OrderByDescending(e => e.EnrolledAt);
         }
 
         public async Task<bool> IsUserEnrolledAsync(Guid userId, Guid courseId)

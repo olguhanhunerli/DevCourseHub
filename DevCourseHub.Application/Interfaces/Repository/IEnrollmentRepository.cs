@@ -10,6 +10,6 @@ namespace DevCourseHub.Application.Interfaces.Repository
     public interface IEnrollmentRepository : IGenericRepository<Enrollment>
     {
         Task<bool> IsUserEnrolledAsync(Guid userId, Guid courseId);
-        Task<IEnumerable<Enrollment>> GetUserEnrollmentAsync(Guid userId);
+        IQueryable<Enrollment> GetUserEnrollmentAsync(Guid userId);
     }
 }

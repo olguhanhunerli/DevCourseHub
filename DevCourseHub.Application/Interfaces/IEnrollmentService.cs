@@ -1,4 +1,6 @@
-﻿using DevCourseHub.Application.DTOs.Enrollment;
+﻿using DevCourseHub.Application.DTOs.Common;
+using DevCourseHub.Application.DTOs.Course;
+using DevCourseHub.Application.DTOs.Enrollment;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,6 @@ namespace DevCourseHub.Application.Interfaces
     public interface IEnrollmentService
     {
         Task<EnrollmentDto> EnrollAsync(Guid courseId);
-        Task<IEnumerable<EnrollmentDto>> GetMyCourseAsync();
+        Task<PagedResultDto<EnrollmentDto>> GetMyCourseAsync(GetEnrollmentQueryDto query);
     }
 }
